@@ -25,4 +25,12 @@ public class User {
     private String email;
 
     private String password;
+
+    @Nullable
+    private String profilePictureName;
+
+    @Nullable
+    @Lob
+    private byte[] profilePictureData;
+
 }
