@@ -18,7 +18,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/profile")
 @RequiredArgsConstructor
-public class ProfileContoller {
+public class profileController {
 
     private final TokenService tokenService;
     private final SecurityFilter securityFilter;
@@ -40,7 +40,7 @@ public class ProfileContoller {
     }
 
     @PutMapping
-    public ResponseEntity<ProfileResponseDTO> updateProfile(@RequestBody ProfileResponseDTO body, HttpServletRequest request) throws IOException {
+    public ResponseEntity<ProfileResponseDTO> updateProfile(@RequestBody ProfileResponseDTO body, HttpServletRequest request) {
         String userId = this.tokenService.getUserIdByToken(securityFilter.recoverToken(request));
         Optional<User> user = this.userRepository.findById(userId);
 

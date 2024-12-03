@@ -2,12 +2,8 @@ package com.example.backend_events_memories.domain.user;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.List;
+import lombok.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "users")
@@ -32,5 +28,11 @@ public class User {
     @Nullable
     @Lob
     private byte[] profilePictureData;
+
+    @Nullable
+    private String passwordResetToken;
+
+    @Nullable
+    private Date passwordResetTokenExpirationDate;
 
 }

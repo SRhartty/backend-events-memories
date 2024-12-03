@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 
 @Service
@@ -21,7 +20,6 @@ import java.util.List;
 public class ImageService {
 
     private final ImageRepository imageRepository;
-    private final EntityManager entityManager;
 
     @Transactional
     public Image saveImage(MultipartFile file, User user, Event event) throws IOException {
