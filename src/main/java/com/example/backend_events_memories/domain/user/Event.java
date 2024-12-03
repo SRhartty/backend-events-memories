@@ -1,5 +1,6 @@
 package com.example.backend_events_memories.domain.user;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,10 +20,13 @@ public class Event {
 
     private String name;
 
+    @Nullable
     private String description;
 
+    @Nullable
     private String date;
 
+    @Nullable
     private String location;
 
     @ManyToOne
