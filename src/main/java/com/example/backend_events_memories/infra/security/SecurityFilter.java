@@ -1,6 +1,6 @@
 package com.example.backend_events_memories.infra.security;
 
-import com.example.backend_events_memories.domain.user.User;
+import com.example.backend_events_memories.domain.User;
 import com.example.backend_events_memories.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,16 +1,18 @@
 package com.example.backend_events_memories.controllers;
 
 
-import com.example.backend_events_memories.domain.user.User;
+import com.example.backend_events_memories.domain.User;
 import com.example.backend_events_memories.dto.ProfileResponseDTO;
 import com.example.backend_events_memories.infra.security.SecurityFilter;
 import com.example.backend_events_memories.infra.security.TokenService;
 import com.example.backend_events_memories.repositories.UserRepository;
+import com.example.backend_events_memories.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -23,20 +25,17 @@ public class profileController {
     private final TokenService tokenService;
     private final SecurityFilter securityFilter;
     private final UserRepository userRepository;
+    private final ProfileService profileService;
 
     @GetMapping
-    public ResponseEntity<ProfileResponseDTO> getProfile(HttpServletRequest request) {
-        String userId = this.tokenService.getUserIdByToken(securityFilter.recoverToken(request));
-        Optional<User> user = this.userRepository.findById(userId);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.status(403).body(null);
+    public ResponseEntity<?> getProfile(HttpServletRequest request) {
+        try {
+            User user = this.profileService.getProfile(request);
+            return ResponseEntity.ok(new ProfileResponseDTO(user.getId(), user.getName(), user.getEmail(),
+                    user.getProfilePictureName(), user.getProfilePictureData()));
+        }catch (ResponseStatusException e){
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         }
-
-        User currentUser = user.get();
-        return ResponseEntity.ok(new ProfileResponseDTO(currentUser.getId(),
-                currentUser.getName(), currentUser.getEmail(), currentUser.getProfilePictureName(),
-                currentUser.getProfilePictureData()));
     }
 
     @PutMapping

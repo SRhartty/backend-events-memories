@@ -1,4 +1,4 @@
-package com.example.backend_events_memories.domain.user;
+package com.example.backend_events_memories.domain;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;

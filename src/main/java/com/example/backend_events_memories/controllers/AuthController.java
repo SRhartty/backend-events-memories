@@ -1,84 +1,58 @@
 package com.example.backend_events_memories.controllers;
 
-import com.example.backend_events_memories.domain.user.User;
+import com.example.backend_events_memories.domain.User;
 import com.example.backend_events_memories.dto.*;
-import com.example.backend_events_memories.infra.security.TokenService;
-import com.example.backend_events_memories.repositories.UserRepository;
+import com.example.backend_events_memories.services.LoginService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import com.example.backend_events_memories.services.SendPasswordResetTokenForUserService;
-
-import java.util.Objects;
-import java.util.Optional;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final TokenService tokenService;
-    private final SendPasswordResetTokenForUserService sendPasswordResetTokenForUserService;
+
+    private final LoginService loginService;
 
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO body){
-        Optional<User> user = this.userRepository.findByEmail(body.email());
-        if(user.isEmpty()) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO body){
+        try {
+            String token = loginService.login(body);
+            return ResponseEntity.ok(new LoginResponseDTO(token));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         }
-        User userFound = user.get();
-        if(passwordEncoder.matches(body.password(), userFound.getPassword())) {
-            String token = this.tokenService.generateToken(userFound);
-            return ResponseEntity.ok(new LoginResponseDTO(userFound.getName(), token));
-        }
-        return ResponseEntity.status(401).build();
     }
 
-
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO body){
-        Optional<User> user = this.userRepository.findByEmail(body.email());
-
-        if(user.isEmpty()) {
-            User newUser = new User();
-            newUser.setPassword(passwordEncoder.encode(body.password()));
-            newUser.setEmail(body.email());
-            newUser.setName(body.name());
-            this.userRepository.save(newUser);
-
-            return ResponseEntity.ok(new RegisterResponseDTO(newUser.getName(), newUser.getEmail()));
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDTO body){
+       try {
+              User user = loginService.register(body);
+              return ResponseEntity.ok(new RegisterResponseDTO(user.getEmail(), user.getName()));
+         } catch (ResponseStatusException e) {
+              return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+       }
     }
 
     @PostMapping("/user/forgotPassword/{email}")
     public ResponseEntity<String> forgotPassword(@PathVariable String email){
-        Optional<User> user = this.userRepository.findByEmail(email);
-        if(user.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        try {
+            loginService.forgotPassword(email);
+            return ResponseEntity.ok().build();
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         }
-        User userFound = user.get();
-        this.sendPasswordResetTokenForUserService.sendPasswordResetTokenForUser(userFound);
-        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/user/resetPassword")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequestDTO body){
-        Optional<User> user = this.userRepository.findByPasswordResetToken(body.token());
-        if(user.isEmpty()) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDTO body){
+        try {
+            loginService.resetUserPassword(body);
+            return ResponseEntity.ok().build();
+        }catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         }
-        if (Objects.requireNonNull(user.get().getPasswordResetTokenExpirationDate()).before(new java.util.Date())) {
-            return ResponseEntity.status(401).build();
-        }
-        User userFound = user.get();
-        userFound.setPassword(passwordEncoder.encode(body.password()));
-        userFound.setPasswordResetToken(null);
-        userFound.setPasswordResetTokenExpirationDate(null);
-        this.userRepository.save(userFound);
-        return ResponseEntity.ok().build();
     }
 }
